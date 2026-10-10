@@ -44,9 +44,23 @@ Some shaders ship default color "stops" that silently override `colorA`/`colorB`
 | Latency | 5–11 s per scene (local and production) |
 | Cost, cold cache | ~7.5¢ (writes the 12.5k-token catalog to cache) |
 | Cost, warm cache | ~2¢ (catalog read from cache at a tenth of the price) |
-| First-try valid | 8 of 8 early runs, 0 repairs needed |
+| First-try valid | 92-95% in eval runs (60 prompts) |
 
-Validity isn't quality: one early scene ("neon tokyo alley in the rain") passed every check but its rain read as squiggles. An eval set that scores quality, not just validity, is the next piece of work.
+Validity isn't quality, so the project has an eval: 60 prompts across 7 categories, run through the real app, screenshotted in headless Chrome, and graded by a Claude Sonnet 5.5 vision judge that was checked against human ratings and known-bad images (`evals/`).
+
+### Measured improvement
+
+Failure analysis of the baseline found that every scene using one effect failed (5/5), a model misreading of a setting, and a validator rule that made both worse. After fixing all three, on the same 60 prompts:
+
+| | Before | After | Paired change (95% CI) |
+|---|---|---|---|
+| Matches prompt | 75% | **93%** | **+18 pts (+8 to +28)** |
+| Explicit requests honored | 88% | 97% | +8 pts (0 to +17) |
+| Overall quality (1-5) | 3.50 | 3.70 | +0.20 (-0.02 to +0.42) |
+| Scenes scored 2 or lower | 9 | 4 | |
+| Cost per scene | 2.15¢ | 2.95¢ | catalog grew from ~7k to ~15k tokens |
+
+Each eval run costs about $2 and takes about 3 minutes.
 
 ## Run it locally
 
