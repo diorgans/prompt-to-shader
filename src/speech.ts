@@ -4,12 +4,13 @@ import { useEffect, useState } from 'react'
 // free, nothing sent anywhere). Returns null where the browser can't speak.
 export function useReadAloud(text: string) {
   const synth = typeof window !== 'undefined' ? window.speechSynthesis : undefined
-  const [speaking, setSpeaking] = useState(false)
+  // The text currently being read; a different scene's text means "not reading this one".
+  const [reading, setReading] = useState<string>()
+  const speaking = reading === text
 
   // A new scene means new text: stop reading the old one.
   useEffect(() => {
     synth?.cancel()
-    setSpeaking(false)
   }, [text, synth])
   useEffect(() => () => synth?.cancel(), [synth])
 
@@ -17,19 +18,18 @@ export function useReadAloud(text: string) {
   return {
     speaking,
     toggle() {
+      synth.cancel()
       if (speaking) {
-        synth.cancel()
-        setSpeaking(false)
+        setReading(undefined)
         return
       }
-      synth.cancel()
       const u = new SpeechSynthesisUtterance(text)
       u.lang = 'en-US'
       const voice = synth.getVoices().find((v) => v.lang === 'en-US' && v.localService)
       if (voice) u.voice = voice
-      u.onend = u.onerror = () => setSpeaking(false)
+      u.onend = u.onerror = () => setReading((r) => (r === text ? undefined : r))
       synth.speak(u)
-      setSpeaking(true)
+      setReading(text)
     },
   }
 }
