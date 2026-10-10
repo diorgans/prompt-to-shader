@@ -60,6 +60,12 @@ const KIND_BY_UI: Record<string, PropKind> = {
 // Props that add tokens without adding expressiveness for a text prompt.
 const SKIPPED_PROPS = new Set(['colorSpace', 'origin'])
 
+// Per-shader props hidden from the model and the UI. Plasma's `stops` maps
+// most of the field onto the last stop, so a dark-to-bright palette renders as
+// a flat bright wash; its colorA/colorB form renders as intended. Found by the
+// scene-quality eval: all 5 baseline scenes that used Plasma stops scored <= 2.
+const HIDDEN_PROPS: Partial<Record<ShaderName, string[]>> = { Plasma: ['stops'] }
+
 function toPropSpec(name: string, meta: Record<string, any>): PropSpec | undefined {
   const uiType = Array.isArray(meta.ui?.type) ? meta.ui.type[0] : meta.ui?.type
   const kind = KIND_BY_UI[uiType]
@@ -82,7 +88,9 @@ function buildCatalog(): Map<ShaderName, ShaderSpec> {
   for (const name of CURATED) {
     const meta = getShaderByName(name)
     if (!meta) throw new Error(`Curated shader "${name}" is missing from the registry`)
+    const hidden = HIDDEN_PROPS[name] ?? []
     const props = Object.entries(meta.propsMetadata ?? {})
+      .filter(([propName]) => !hidden.includes(propName))
       .map(([propName, propMeta]) => toPropSpec(propName, propMeta))
       .filter((p): p is PropSpec => p !== undefined)
     catalog.set(name, {
@@ -97,24 +105,29 @@ function buildCatalog(): Map<ShaderName, ShaderSpec> {
 
 export const catalog = buildCatalog()
 
-function describeProp(p: PropSpec): string {
+function propType(p: PropSpec): string {
   switch (p.kind) {
     case 'number':
-      return `${p.name}: number ${p.min}..${p.max} (default ${p.default})`
+      return `number ${p.min}..${p.max}, default ${p.default}`
     case 'select':
-      return `${p.name}: one of ${p.options?.join('|')} (default ${p.default})`
+      return `one of ${p.options?.join('|')}, default ${p.default}`
     case 'boolean':
-      return `${p.name}: true|false`
+      return 'true|false'
     case 'color':
-      return `${p.name}: hex color`
+      return 'hex color'
     case 'position':
-      return `${p.name}: "x,y" in 0..1`
+      return '"x,y" in 0..1'
     case 'stops':
-      return `${p.name}: comma-separated hex colors, overrides colorA/colorB`
+      return 'comma-separated hex colors, overrides colorA/colorB'
     case 'text':
-      return `${p.name}: text`
+      return 'text'
   }
 }
+
+// The registry's description carries meaning a range can't, e.g. Pixelate
+// scale is "pixels along the longest edge (higher = smaller pixels)". Without
+// it the model guessed the opposite and pixelated text into unreadable blocks.
+const describeProp = (p: PropSpec) => `    ${p.name} (${propType(p)})${p.description ? `: ${p.description}` : ''}`
 
 /** Compact, deterministic text listing of every shader, for the system prompt. */
 export function catalogText(): string {
@@ -124,7 +137,7 @@ export function catalogText(): string {
     for (const s of catalog.values()) {
       if (s.role !== role) continue
       lines.push(`- ${s.name}: ${s.description}`)
-      lines.push(`  props: ${s.props.map(describeProp).join('; ')}`)
+      lines.push(...s.props.map(describeProp))
     }
   }
   return lines.join('\n')

@@ -116,10 +116,13 @@ export function validateScene(input: ModelScene): ValidationResult {
       if (parsed.value !== undefined) props[name] = parsed.value
     }
 
-    // Shaders with a `stops` prop ship default stops that override colorA/colorB,
-    // so colors the model set would silently do nothing. Promote them to stops.
-    const hasStops = spec.props.some((p) => p.kind === 'stops')
-    if (hasStops && props.stops === undefined) {
+    // Some shaders ship default stops that override colorA/colorB, so colors
+    // the model set would silently do nothing. Promote them to stops, but only
+    // there: where the default is empty, colorA/colorB already work and
+    // converting them changes how the shader maps color.
+    const stopsSpec = spec.props.find((p) => p.kind === 'stops')
+    const defaultStopsWin = Array.isArray(stopsSpec?.default) && stopsSpec.default.length > 0
+    if (defaultStopsWin && props.stops === undefined) {
       const colors = ['colorA', 'colorB', 'colorC', 'colorD'].map((k) => props[k]).filter((c): c is string => typeof c === 'string')
       if (colors.length >= 2) {
         props.stops = stopsFrom(colors)

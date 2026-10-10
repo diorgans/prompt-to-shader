@@ -13,6 +13,10 @@ describe('catalog', () => {
     expect(roles).toContain('filter')
   })
 
+  it('tells the model what each setting means, not just its range', () => {
+    expect(catalogText()).toContain('scale (number 1..200, default 50): Number of pixels along the longest edge')
+  })
+
   it('is deterministic so the system prompt stays cacheable', () => {
     expect(catalogText()).toBe(catalogText())
   })
@@ -70,6 +74,18 @@ describe('validateScene', () => {
       { color: '#f97316', position: 0 },
       { color: '#ec4899', position: 1 },
     ])
+  })
+
+  it('leaves colorA/colorB alone where the default stops are empty (Plasma)', () => {
+    const { scene: s, fixes } = validateScene(scene([{ type: 'Plasma', props: [p('colorA', '#ff3b00'), p('colorB', '#1a0033')] }]))
+    expect(s.layers[0].props).toEqual({ colorA: '#ff3b00', colorB: '#1a0033' })
+    expect(fixes).toEqual([])
+  })
+
+  it('drops Plasma stops, which render as a flat wash of the last color', () => {
+    const { scene: s, fixes } = validateScene(scene([{ type: 'Plasma', props: [p('stops', '#000000,#ffffff')] }]))
+    expect(s.layers[0].props.stops).toBeUndefined()
+    expect(fixes[0]).toMatch(/dropped unknown prop "stops"/)
   })
 
   it('round-trips through toModelScene', () => {
