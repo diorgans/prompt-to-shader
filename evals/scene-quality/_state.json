@@ -1,0 +1,72 @@
+{
+  "metrics": [
+    {
+      "id": "prompt_match",
+      "label": "Matches prompt",
+      "kind": "binary"
+    },
+    {
+      "id": "explicit",
+      "label": "Explicit asks",
+      "kind": "binary"
+    },
+    {
+      "id": "not_broken",
+      "label": "Not broken",
+      "kind": "binary"
+    },
+    {
+      "id": "overall",
+      "label": "Overall (1-5)",
+      "kind": "judge",
+      "scale": 5
+    },
+    {
+      "id": "valid_first",
+      "label": "Valid 1st try",
+      "kind": "binary"
+    }
+  ],
+  "perf_fields": [
+    {
+      "id": "cost_usd",
+      "label": "Cost",
+      "unit": "$"
+    },
+    {
+      "id": "gen_latency_s",
+      "label": "Gen time",
+      "unit": "s"
+    },
+    {
+      "id": "repairs",
+      "label": "Repairs"
+    },
+    {
+      "id": "layers",
+      "label": "Layers"
+    }
+  ],
+  "prices": {
+    "claude-opus-5-5": {
+      "in": 4,
+      "out": 20
+    },
+    "claude-sonnet-5-5": {
+      "in": 2,
+      "out": 10
+    },
+    "claude-haiku-5-5": {
+      "in": 0.1,
+      "out": 0.5
+    }
+  },
+  "harness_paths": [
+    "evals/judge.ts",
+    "evals/cases.json",
+    "server/generateScene.ts",
+    "src/scene/catalog.ts",
+    "src/scene/schema.ts"
+  ],
+  "harness_sha": "0085bdb13f72ebaf53c1cdfb9b78bac3d00625bdde014d74a8db6ea2deaa4658"
+}

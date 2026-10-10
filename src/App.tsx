@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Gallery } from './Gallery'
+import { RenderView } from './RenderView'
 import { Studio } from './Studio'
 import { Trailer } from './Trailer'
 
@@ -12,6 +13,7 @@ function App() {
     return () => window.removeEventListener('hashchange', onHash)
   }, [])
 
+  if (hash.startsWith('#render=')) return <RenderView encoded={hash.slice('#render='.length)} />
   if (hash === '#gallery') return <Gallery />
   if (hash === '#trailer') return <Trailer />
   return <Studio />

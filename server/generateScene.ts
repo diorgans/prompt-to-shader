@@ -45,6 +45,8 @@ export type GenerateRequest = {
 
 export type GenerateStats = {
   model: string
+  /** Model that actually served the final response (differs from `model` after a fallback). */
+  servedModel: string
   repairs: number
   firstTryValid: boolean
   fixes: string[]
@@ -52,7 +54,16 @@ export type GenerateStats = {
   usage: { input: number; output: number; cacheRead: number; cacheWrite: number }
 }
 
-export class GenerateError extends Error {}
+export class GenerateError extends Error {
+  readonly kind: 'refusal' | 'truncated' | 'invalid'
+  constructor(message: string, kind: GenerateError['kind']) {
+    super(message)
+    this.kind = kind
+  }
+}
+
+/** The full exchange, for eval transcripts. */
+export type Transcript = { system: string; messages: Anthropic.Beta.BetaMessageParam[] }
 
 function userMessage({ prompt, current }: GenerateRequest): string {
   if (!current) return `Prompt: ${prompt}`
@@ -63,7 +74,7 @@ export async function generateScene(
   client: Anthropic,
   req: GenerateRequest,
   onEvent: (e: GenerateEvent) => void = () => {},
-): Promise<{ scene: Scene; stats: GenerateStats }> {
+): Promise<{ scene: Scene; stats: GenerateStats; transcript: Transcript }> {
   const modelKey = req.model ?? 'opus'
   const model = MODELS[modelKey]
   const started = Date.now()
@@ -88,18 +99,20 @@ export async function generateScene(
     usage.cacheRead += response.usage.cache_read_input_tokens ?? 0
     usage.cacheWrite += response.usage.cache_creation_input_tokens ?? 0
 
-    if (response.stop_reason === 'refusal') throw new GenerateError('The model declined this prompt. Try rephrasing it.')
+    if (response.stop_reason === 'refusal') throw new GenerateError('The model declined this prompt. Try rephrasing it.', 'refusal')
     if (response.stop_reason === 'max_tokens' || !response.parsed_output) {
-      throw new GenerateError('The model returned an incomplete scene. Try again.')
+      throw new GenerateError('The model returned an incomplete scene. Try again.', 'truncated')
     }
 
     const { scene, errors, fixes } = validateScene(response.parsed_output)
     if (errors.length === 0) {
       if (attempt === 0) firstTryValid = true
       onEvent({ type: 'scene', scene, fixes })
+      messages.push({ role: 'assistant', content: response.content })
       return {
         scene,
-        stats: { model, repairs: attempt, firstTryValid, fixes, latencyMs: Date.now() - started, usage },
+        stats: { model, servedModel: response.model, repairs: attempt, firstTryValid, fixes, latencyMs: Date.now() - started, usage },
+        transcript: { system: SYSTEM_PROMPT, messages },
       }
     }
 
@@ -112,5 +125,5 @@ export async function generateScene(
     })
   }
 
-  throw new GenerateError('Could not produce a valid scene. Try a simpler prompt.')
+  throw new GenerateError('Could not produce a valid scene. Try a simpler prompt.', 'invalid')
 }

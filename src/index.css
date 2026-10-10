@@ -100,3 +100,4 @@ button:disabled { opacity: 0.45; cursor: not-allowed; }
   .studio { grid-template-columns: 1fr; grid-template-rows: 55vh auto; height: auto; min-height: 100dvh; }
   .panel { border-left: 0; border-top: 1px solid var(--edge); overflow: visible; }
 }
+.render-full { position: fixed; inset: 0; width: 100%; height: 100%; display: block; }
