@@ -6,6 +6,7 @@ import { PropsPanel } from './PropsPanel'
 import { SceneView } from './SceneView'
 import { toPreset, type Scene } from './scene/schema'
 import { decodeScene, shareUrl } from './share'
+import { useReadAloud } from './speech'
 
 function initialScene(): Scene {
   const match = location.hash.match(/^#s=(.+)$/)
@@ -30,6 +31,7 @@ export function Studio() {
   const [stats, setStats] = useState<GenerateStats>()
   const [toast, setToast] = useState<string>()
   const busy = status !== undefined
+  const reader = useReadAloud(`${scene.title}. ${scene.rationale}`)
 
   // Load a share link pasted into an already-open tab.
   useEffect(() => {
@@ -155,6 +157,11 @@ export function Studio() {
           <div className="actions">
             <button type="button" className="secondary" onClick={copyCode}>Copy React code</button>
             <button type="button" className="secondary" onClick={copyLink}>Copy share link</button>
+            {reader && (
+              <button type="button" className="secondary" onClick={reader.toggle} aria-pressed={reader.speaking}>
+                {reader.speaking ? 'Stop reading' : 'Read aloud'}
+              </button>
+            )}
           </div>
         </section>
 
