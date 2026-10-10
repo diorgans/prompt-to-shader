@@ -127,7 +127,7 @@ function propType(p: PropSpec): string {
 // The registry's description carries meaning a range can't, e.g. Pixelate
 // scale is "pixels along the longest edge (higher = smaller pixels)". Without
 // it the model guessed the opposite and pixelated text into unreadable blocks.
-const describeProp = (p: PropSpec) => `    ${p.name} (${propType(p)})${p.description ? `: ${p.description}` : ''}`
+export const describeProp = (p: PropSpec) => `    ${p.name} (${propType(p)})${p.description ? `: ${p.description}` : ''}`
 
 /** Compact, deterministic text listing of every shader, for the system prompt. */
 export function catalogText(): string {
