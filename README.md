@@ -2,6 +2,8 @@
 
 Describe a mood in plain words and Claude composes a live, animated WebGPU shader for it.
 
+**[Try it live → prompt-to-shader.vercel.app](https://prompt-to-shader.vercel.app/)** (needs a WebGPU browser: recent Chrome, Edge, or Safari)
+
 ![Ka-Pow Pop Burst: a scene Claude composed from "a comic-book explosion of color, pop art"](docs/screenshot.jpg)
 
 *Above: Claude's answer to "a comic-book explosion of color, pop art". A yellow-on-red sunburst, twirled, posterized, then printed through a CMYK halftone.*
@@ -39,10 +41,10 @@ Some shaders ship default color "stops" that silently override `colorA`/`colorB`
 
 | | |
 |---|---|
-| Latency | 5–11 s per scene |
+| Latency | 5–11 s per scene (local and production) |
 | Cost, cold cache | ~7.5¢ (writes the 12.5k-token catalog to cache) |
 | Cost, warm cache | ~2¢ (catalog read from cache at a tenth of the price) |
-| First-try valid | 5 of 5 early runs, 0 repairs needed |
+| First-try valid | 8 of 8 early runs, 0 repairs needed |
 
 Validity isn't quality: one early scene ("neon tokyo alley in the rain") passed every check but its rain read as squiggles. An eval set that scores quality, not just validity, is the next piece of work.
 
