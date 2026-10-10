@@ -1,6 +1,6 @@
 import Anthropic from '@anthropic-ai/sdk'
 import { z } from 'zod'
-import { MODELS, GenerateError, generateScene, type GenerateEvent } from './generateScene'
+import { MODELS, GenerateError, generateScene, type GenerateEvent } from './generateScene.js'
 
 const Body = z.object({
   prompt: z.string().trim().min(1).max(500),

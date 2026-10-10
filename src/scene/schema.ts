@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { CURATED, catalog, type PropSpec, type ShaderName } from './catalog'
+import { CURATED, catalog, type PropSpec, type ShaderName } from './catalog.js'
 
 export const MAX_LAYERS = 6
 

@@ -1,7 +1,7 @@
 import Anthropic from '@anthropic-ai/sdk'
 import { zodOutputFormat } from '@anthropic-ai/sdk/helpers/zod'
-import { catalogText } from '../src/scene/catalog'
-import { MAX_LAYERS, ModelScene, toModelScene, validateScene, type Scene } from '../src/scene/schema'
+import { catalogText } from '../src/scene/catalog.js'
+import { MAX_LAYERS, ModelScene, toModelScene, validateScene, type Scene } from '../src/scene/schema.js'
 
 export const MODELS = {
   opus: 'claude-opus-5-5',
