@@ -31,6 +31,20 @@ export function Studio() {
   const [toast, setToast] = useState<string>()
   const busy = status !== undefined
 
+  // Load a share link pasted into an already-open tab.
+  useEffect(() => {
+    const onHash = () => {
+      const match = location.hash.match(/^#s=(.+)$/)
+      const shared = match && decodeScene(match[1])
+      if (shared) {
+        setScene(shared)
+        setSceneKey((k) => k + 1)
+      }
+    }
+    window.addEventListener('hashchange', onHash)
+    return () => window.removeEventListener('hashchange', onHash)
+  }, [])
+
   useEffect(() => {
     if (!toast) return
     const t = setTimeout(() => setToast(undefined), 2000)

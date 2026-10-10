@@ -49,11 +49,13 @@ function Control({ spec, value, onChange }: { spec: PropSpec; value: unknown; on
   switch (spec.kind) {
     case 'number': {
       const n = typeof value === 'number' ? value : Number(spec.default ?? 0)
+      // Show as many decimals as the slider's step, so 0.003 doesn't read as 0.00.
+      const decimals = spec.step && spec.step < 1 ? Math.min(4, Math.ceil(-Math.log10(spec.step))) : 2
       return (
         <label className="control" title={spec.description}>
           <span>{spec.label}</span>
           <input type="range" min={spec.min} max={spec.max} step={spec.step ?? 'any'} value={n} onChange={(e) => onChange(Number(e.target.value))} />
-          <output>{Number.isInteger(n) ? n : n.toFixed(2)}</output>
+          <output>{Number.isInteger(n) ? n : n.toFixed(decimals)}</output>
         </label>
       )
     }
